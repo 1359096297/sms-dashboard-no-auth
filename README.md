@@ -1,6 +1,6 @@
-# SMS Dashboard
+# SmsForwarder Webhook Dashboard
 
-一个面向个人部署场景的轻量短信验证码看板：
+一个基于 SmsForwarder、FastAPI 和 Webhook 的轻量短信验证码看板：
 
 - Android 手机通过 SmsForwarder Webhook 转发短信
 - FastAPI 接收并解析短信发送方和 4～8 位验证码
@@ -8,7 +8,20 @@
 - 只在内存中保留最新一条，不使用数据库
 - 不包含登录功能和 Token 校验
 
-> 安全提示：此项目未提供身份认证。任何能够访问服务地址的用户均可查看最新短信或调用接口提交内容。建议仅在可信网络中使用，或根据实际需求增加访问控制。
+## 安全说明
+
+本项目为了简化个人部署流程，网页和 `POST /sms` 接口均未提供登录功能或
+Token 认证。任何能够访问服务地址的用户均可查看最新短信，也可以调用接口
+提交内容。部署前请充分了解这一风险，并至少采取以下措施：
+
+- 使用专用域名，不要将实际域名公开在 GitHub、截图、论坛或聊天记录中。
+- 全程启用 HTTPS，不要直接公开 `http://服务器IP:8000`。
+- 限制服务器防火墙和宝塔面板的访问范围，不要将 Python 服务端口直接暴露到公网。
+- 根据实际环境增加反向代理访问控制、WAF、IP 白名单或 Token 验证。
+- 定期检查网站访问日志；如域名或接口地址泄露，应及时更换域名或增加认证。
+
+本文档中的 `sms.example.com` 和 `message.example.net` 均为示例域名，部署时
+需要替换为实际域名。实际域名不应写入公开仓库。
 
 ## 相关项目
 
@@ -16,12 +29,12 @@
 
 ## 项目截图
 
-![SMS Dashboard 项目界面](docs/project-screenshot.jpg)
+![SmsForwarder Webhook Dashboard 项目界面](docs/project-screenshot.jpg)
 
 ## 项目结构
 
 ```text
-sms-dashboard-no-auth/
+smsforwarder-webhook-dashboard/
 ├─ docs/
 │  └─ project-screenshot.jpg
 ├─ index.html
@@ -111,7 +124,7 @@ Android 系统可能在熄屏或长时间待机后终止后台应用。建议同
 在 SmsForwarder 中进入“发送通道”，新增一个 `Webhook` 通道：
 
 ```text
-名称：SMS Dashboard
+名称：SmsForwarder Webhook Dashboard
 请求方式：POST
 请求地址：https://sms.example.com/sms
 Content-Type：application/json
@@ -155,7 +168,7 @@ Content-Type：application/json
 下载项目源码并解压到：
 
 ```text
-C:\wwwroot\sms-dashboard-no-auth
+C:\wwwroot\smsforwarder-webhook-dashboard
 ```
 
 ### 2. 安装 Python 环境
@@ -179,13 +192,13 @@ C:\BtSoft\python\python_3.11.15\python.exe
 可以在创建 Python 项目时，将“安装依赖包”设置为：
 
 ```text
-C:\wwwroot\sms-dashboard-no-auth\requirements.txt
+C:\wwwroot\smsforwarder-webhook-dashboard\requirements.txt
 ```
 
 也可以在宝塔终端执行：
 
 ```powershell
-& "C:\BtSoft\python\python_3.11.15\python.exe" -m pip install -r "C:\wwwroot\sms-dashboard-no-auth\requirements.txt"
+& "C:\BtSoft\python\python_3.11.15\python.exe" -m pip install -r "C:\wwwroot\smsforwarder-webhook-dashboard\requirements.txt"
 ```
 
 ### 4. 创建 Python 项目
@@ -193,8 +206,8 @@ C:\wwwroot\sms-dashboard-no-auth\requirements.txt
 在宝塔面板中点击“添加 Python 项目”，填写：
 
 ```text
-项目路径：C:\wwwroot\sms-dashboard-no-auth
-项目名称：sms-dashboard-no-auth
+项目路径：C:\wwwroot\smsforwarder-webhook-dashboard
+项目名称：smsforwarder-webhook-dashboard
 Python环境：python_3.11.15
 启动方式：命令行启动
 环境变量：无
