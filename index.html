@@ -1,0 +1,704 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light">
+    <title>SMS Dashboard</title>
+    <script src="https://code.iconify.design/iconify-icon/2.3.0/iconify-icon.min.js"></script>
+    <style>
+        :root {
+            color: #172544;
+            background: #f5f9ff;
+            font-family: Inter, "Segoe UI", "Microsoft YaHei", sans-serif;
+            font-synthesis: none;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            margin: 0;
+            padding: 68px 28px 38px;
+            background:
+                radial-gradient(circle at 12% 12%, rgba(213, 230, 255, .75), transparent 32%),
+                radial-gradient(circle at 88% 88%, rgba(225, 234, 255, .68), transparent 32%),
+                linear-gradient(135deg, #f7fbff 0%, #ffffff 48%, #f4f8ff 100%);
+        }
+
+        body::before {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            pointer-events: none;
+            content: "";
+            background-image: radial-gradient(rgba(92, 145, 235, .13) 1.2px, transparent 1.2px);
+            background-position: calc(100% - 38px) 18px;
+            background-repeat: no-repeat;
+            background-size: 14px 14px;
+            mask-image: linear-gradient(to left, #000, transparent 18%);
+        }
+
+        .page {
+            width: min(1160px, 100%);
+            margin: 0 auto;
+        }
+
+        @media (min-width: 761px) {
+            .page {
+                zoom: 90%;
+            }
+        }
+
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 28px;
+            margin-bottom: 42px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            min-width: 0;
+        }
+
+        .brand-mark {
+            display: grid;
+            width: 70px;
+            height: 70px;
+            flex: 0 0 auto;
+            place-items: center;
+            border-radius: 18px;
+            color: white;
+            background: linear-gradient(145deg, #3c94f5, #2366df);
+            box-shadow: 0 14px 28px rgba(45, 111, 226, .27);
+        }
+
+        .brand-mark iconify-icon {
+            font-size: 39px;
+        }
+
+        h1 {
+            margin: 0;
+            color: #14213e;
+            font-size: clamp(34px, 5vw, 50px);
+            font-weight: 780;
+            letter-spacing: -.045em;
+            line-height: 1.08;
+        }
+
+        .subtitle {
+            margin: 11px 0 0;
+            color: #8390aa;
+            font-size: clamp(16px, 2vw, 23px);
+        }
+
+        .connection-pill {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 0 0 auto;
+            min-height: 58px;
+            padding: 0 20px;
+            border: 1px solid rgba(225, 232, 243, .9);
+            border-radius: 22px;
+            color: #26354e;
+            background: rgba(255, 255, 255, .88);
+            box-shadow: 0 12px 35px rgba(48, 76, 121, .1);
+            backdrop-filter: blur(14px);
+        }
+
+        .connection-dot {
+            width: 13px;
+            height: 13px;
+            border-radius: 50%;
+            background: #38b978;
+            box-shadow: 0 0 0 6px rgba(56, 185, 120, .15);
+        }
+
+        .connection-pill.error .connection-dot {
+            background: #e35f6f;
+            box-shadow: 0 0 0 6px rgba(227, 95, 111, .14);
+        }
+
+        .connection-label {
+            font-size: 17px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .refresh-time {
+            padding-left: 12px;
+            border-left: 1px solid #dce4f0;
+            color: #8491a8;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+
+        .dashboard-card {
+            min-height: 560px;
+            padding: clamp(30px, 5vw, 48px);
+            overflow: hidden;
+            border: 1px solid rgba(235, 240, 249, .9);
+            border-radius: 26px;
+            background: rgba(255, 255, 255, .94);
+            box-shadow: 0 26px 70px rgba(65, 91, 137, .12);
+        }
+
+        .empty-state {
+            display: grid;
+            min-height: 460px;
+            place-items: center;
+            text-align: center;
+        }
+
+        .empty-icon {
+            display: grid;
+            width: 88px;
+            height: 88px;
+            margin: 0 auto 22px;
+            place-items: center;
+            border-radius: 28px;
+            color: #397cf0;
+            background: #f0f5ff;
+        }
+
+        .empty-icon iconify-icon {
+            font-size: 48px;
+        }
+
+        .empty-title {
+            color: #354664;
+            font-size: 22px;
+            font-weight: 700;
+        }
+
+        .empty-copy {
+            margin-top: 8px;
+            color: #91a0b8;
+            font-size: 15px;
+        }
+
+        .message-view {
+            display: none;
+        }
+
+        .message-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 24px;
+        }
+
+        .sender-block {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            min-width: 0;
+        }
+
+        .sender-icon {
+            display: grid;
+            width: 72px;
+            height: 72px;
+            flex: 0 0 auto;
+            place-items: center;
+            border-radius: 50%;
+            color: #3981f1;
+            background: linear-gradient(145deg, #f5f8ff, #eef3ff);
+        }
+
+        .sender-icon iconify-icon {
+            font-size: 39px;
+            transform: rotate(-8deg);
+        }
+
+        .sender-name {
+            overflow: hidden;
+            color: #172544;
+            font-size: clamp(24px, 3vw, 34px);
+            font-weight: 760;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .section-label {
+            margin-top: 18px;
+            color: #8290aa;
+            font-size: 23px;
+        }
+
+        .copy-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            min-height: 56px;
+            padding: 0 23px;
+            border: 0;
+            border-radius: 15px;
+            color: #fff;
+            background: linear-gradient(135deg, #5793ff, #1f58e8);
+            box-shadow: 0 12px 25px rgba(40, 96, 227, .25);
+            cursor: pointer;
+            font: inherit;
+            font-size: 18px;
+            font-weight: 650;
+            transition: transform .18s ease, box-shadow .18s ease;
+        }
+
+        .copy-button:hover {
+            box-shadow: 0 15px 30px rgba(40, 96, 227, .32);
+            transform: translateY(-2px);
+        }
+
+        .copy-button:focus-visible {
+            outline: 4px solid rgba(47, 97, 214, .2);
+            outline-offset: 3px;
+        }
+
+        .copy-button iconify-icon {
+            font-size: 23px;
+        }
+
+        .code-grid {
+            display: grid;
+            grid-template-columns: repeat(var(--digit-count, 6), minmax(0, 1fr));
+            gap: clamp(8px, 2.2vw, 28px);
+            width: min(850px, 100%);
+            margin: 60px auto 50px;
+        }
+
+        .code-digit {
+            display: grid;
+            min-width: 0;
+            aspect-ratio: .82;
+            place-items: center;
+            border: 2px solid #e4eaf4;
+            border-radius: 13px;
+            color: #2e70e9;
+            background: linear-gradient(180deg, #ffffff, #fbfcff);
+            box-shadow: 0 7px 16px rgba(72, 101, 150, .06);
+            font-size: clamp(34px, 6vw, 68px);
+            font-weight: 780;
+            line-height: 1;
+        }
+
+        .code-grid.unresolved {
+            display: block;
+            width: 100%;
+            margin: 42px 0;
+            color: #8a97ab;
+            font-size: 28px;
+            font-weight: 650;
+        }
+
+        .message-panel {
+            display: flex;
+            align-items: flex-start;
+            gap: 25px;
+            padding: 32px 34px;
+            border: 2px solid #d8e7ff;
+            border-radius: 18px;
+            background: linear-gradient(135deg, #f5f9ff, #fbfdff);
+        }
+
+        .message-icon {
+            display: grid;
+            width: 72px;
+            height: 72px;
+            flex: 0 0 auto;
+            place-items: center;
+            border-radius: 50%;
+            color: #3e7df0;
+            background: #eaf2ff;
+        }
+
+        .message-icon iconify-icon {
+            font-size: 38px;
+        }
+
+        .message-content {
+            min-width: 0;
+            padding-top: 3px;
+            color: #2a3c5e;
+            font-size: clamp(17px, 2.2vw, 23px);
+            line-height: 1.72;
+            overflow-wrap: anywhere;
+            white-space: pre-wrap;
+        }
+
+        .message-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 24px;
+            margin-top: 38px;
+            padding-top: 28px;
+            border-top: 1px solid #e6ebf3;
+            color: #8492ab;
+            font-size: 17px;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 13px;
+            min-width: 0;
+        }
+
+        .meta-icon {
+            display: grid;
+            width: 48px;
+            height: 48px;
+            flex: 0 0 auto;
+            place-items: center;
+            border-radius: 50%;
+            color: #5689ea;
+            background: #f3f6fc;
+        }
+
+        .meta-icon iconify-icon {
+            font-size: 25px;
+        }
+
+        .received-time {
+            white-space: nowrap;
+        }
+
+        .security-note {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin: 35px auto 0;
+            color: #96a3b9;
+            font-size: 15px;
+        }
+
+        .security-note iconify-icon {
+            font-size: 22px;
+        }
+
+        .dashboard-card.updated {
+            animation: message-arrived .5s ease;
+        }
+
+        @keyframes message-arrived {
+            0% {
+                transform: translateY(6px);
+                box-shadow: 0 26px 70px rgba(65, 91, 137, .12);
+            }
+            50% {
+                transform: translateY(0);
+                box-shadow: 0 28px 78px rgba(52, 107, 214, .22);
+            }
+            100% {
+                box-shadow: 0 26px 70px rgba(65, 91, 137, .12);
+            }
+        }
+
+        @media (max-width: 760px) {
+            body {
+                padding: 32px 16px 28px;
+            }
+
+            .page-header {
+                align-items: flex-start;
+                flex-direction: column;
+                margin-bottom: 26px;
+            }
+
+            .brand {
+                gap: 15px;
+            }
+
+            .brand-mark {
+                width: 58px;
+                height: 58px;
+                border-radius: 15px;
+            }
+
+            .connection-pill {
+                min-height: 50px;
+                padding: 0 16px;
+            }
+
+            .dashboard-card {
+                min-height: 500px;
+                padding: 25px 19px;
+                border-radius: 21px;
+            }
+
+            .sender-icon {
+                width: 58px;
+                height: 58px;
+            }
+
+            .copy-button {
+                min-height: 48px;
+                padding: 0 16px;
+                font-size: 15px;
+            }
+
+            .code-grid {
+                gap: 7px;
+                margin: 43px auto 38px;
+            }
+
+            .code-digit {
+                border-radius: 9px;
+                font-size: clamp(27px, 10vw, 48px);
+            }
+
+            .message-panel {
+                gap: 15px;
+                padding: 20px 17px;
+            }
+
+            .message-icon {
+                width: 50px;
+                height: 50px;
+            }
+
+            .message-meta {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+        }
+
+        @media (max-width: 430px) {
+            .message-head {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .copy-button {
+                align-self: stretch;
+                justify-content: center;
+            }
+
+            .connection-pill {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .refresh-time {
+                font-size: 12px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: .01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: .01ms !important;
+            }
+        }
+    </style>
+</head>
+<body>
+<main class="page">
+    <header class="page-header">
+        <div class="brand">
+            <div class="brand-mark" aria-hidden="true">
+                <iconify-icon icon="solar:chat-round-dots-bold"></iconify-icon>
+            </div>
+            <div>
+                <h1>SMS Dashboard</h1>
+                <p class="subtitle">只显示最新一条，不保存历史记录</p>
+            </div>
+        </div>
+
+        <div id="connectionPill" class="connection-pill">
+            <span class="connection-dot" aria-hidden="true"></span>
+            <span id="connectionLabel" class="connection-label">正在连接</span>
+            <span id="refreshTime" class="refresh-time">刷新于 --:--:--</span>
+        </div>
+    </header>
+
+    <section id="dashboardCard" class="dashboard-card" aria-live="polite">
+        <div id="emptyState" class="empty-state">
+            <div>
+                <div class="empty-icon" aria-hidden="true">
+                    <iconify-icon icon="solar:inbox-line-bold-duotone"></iconify-icon>
+                </div>
+                <div class="empty-title">等待新短信</div>
+                <div class="empty-copy">页面每秒自动检查一次</div>
+            </div>
+        </div>
+
+        <article id="messageView" class="message-view">
+            <div class="message-head">
+                <div class="sender-block">
+                    <div class="sender-icon" aria-hidden="true">
+                        <iconify-icon icon="solar:plain-2-bold-duotone"></iconify-icon>
+                    </div>
+                    <div>
+                        <div id="senderName" class="sender-name">短信</div>
+                        <div class="section-label">验证码</div>
+                    </div>
+                </div>
+
+                <button id="copyButton" class="copy-button" type="button">
+                    <iconify-icon icon="solar:copy-outline" aria-hidden="true"></iconify-icon>
+                    <span id="copyText">复制</span>
+                </button>
+            </div>
+
+            <div id="codeGrid" class="code-grid" aria-label="验证码"></div>
+
+            <div class="message-panel">
+                <div class="message-icon" aria-hidden="true">
+                    <iconify-icon icon="solar:shield-check-bold-duotone"></iconify-icon>
+                </div>
+                <div id="messageContent" class="message-content"></div>
+            </div>
+
+            <div class="message-meta">
+                <div class="meta-item">
+                    <span class="meta-icon" aria-hidden="true">
+                        <iconify-icon icon="solar:smartphone-2-outline"></iconify-icon>
+                    </span>
+                    <span id="deviceName">Android</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-icon" aria-hidden="true">
+                        <iconify-icon icon="solar:clock-circle-outline"></iconify-icon>
+                    </span>
+                    <time id="receivedTime" class="received-time"></time>
+                </div>
+            </div>
+        </article>
+    </section>
+
+    <footer class="security-note">
+        <iconify-icon icon="solar:shield-check-outline" aria-hidden="true"></iconify-icon>
+        <span>验证码仅用于登录验证，请勿泄露给他人</span>
+    </footer>
+</main>
+
+<script>
+    const connectionPill = document.getElementById("connectionPill");
+    const connectionLabel = document.getElementById("connectionLabel");
+    const refreshTime = document.getElementById("refreshTime");
+    const dashboardCard = document.getElementById("dashboardCard");
+    const emptyState = document.getElementById("emptyState");
+    const messageView = document.getElementById("messageView");
+    const codeGrid = document.getElementById("codeGrid");
+    const copyButton = document.getElementById("copyButton");
+    const copyText = document.getElementById("copyText");
+
+    let latestCode = "";
+    let latestMessageTime = null;
+    let isLoading = false;
+
+    function setConnection(online) {
+        connectionPill.classList.toggle("error", !online);
+        connectionLabel.textContent = online ? "在线" : "连接失败";
+    }
+
+    function formatTime(value) {
+        const date = new Date(value);
+        return Number.isNaN(date.getTime()) ? value : date.toLocaleString();
+    }
+
+    function renderCode(code) {
+        codeGrid.replaceChildren();
+        const normalizedCode = String(code || "未识别").trim();
+        latestCode = /^\d{4,8}$/.test(normalizedCode) ? normalizedCode : "";
+
+        if (!latestCode) {
+            codeGrid.className = "code-grid unresolved";
+            codeGrid.textContent = "未识别到验证码";
+            return;
+        }
+
+        codeGrid.className = "code-grid";
+        codeGrid.style.setProperty("--digit-count", latestCode.length);
+
+        for (const digit of latestCode) {
+            const cell = document.createElement("span");
+            cell.className = "code-digit";
+            cell.textContent = digit;
+            codeGrid.appendChild(cell);
+        }
+    }
+
+    function showMessage(data, animate) {
+        document.getElementById("senderName").textContent = data.sender || "短信";
+        document.getElementById("messageContent").textContent = data.content || "";
+        document.getElementById("deviceName").textContent = data.device || "Android";
+        document.getElementById("receivedTime").textContent = formatTime(data.time);
+        renderCode(data.code);
+
+        emptyState.style.display = "none";
+        messageView.style.display = "block";
+
+        if (animate) {
+            dashboardCard.classList.remove("updated");
+            void dashboardCard.offsetWidth;
+            dashboardCard.classList.add("updated");
+        }
+    }
+
+    async function loadLatest() {
+        if (isLoading) return;
+        isLoading = true;
+
+        try {
+            const response = await fetch("/latest", {cache: "no-store"});
+            if (!response.ok) throw new Error("request failed");
+
+            const result = await response.json();
+            const checkedAt = new Date().toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit"
+            });
+
+            setConnection(true);
+            refreshTime.textContent = `刷新于 ${checkedAt}`;
+
+            if (result.data && result.data.time !== latestMessageTime) {
+                const hasPreviousMessage = latestMessageTime !== null;
+                latestMessageTime = result.data.time;
+                showMessage(result.data, hasPreviousMessage);
+            }
+        } catch (_) {
+            setConnection(false);
+        } finally {
+            isLoading = false;
+        }
+    }
+
+    copyButton.addEventListener("click", async () => {
+        if (!latestCode) return;
+
+        try {
+            await navigator.clipboard.writeText(latestCode);
+            copyText.textContent = "已复制";
+            setTimeout(() => copyText.textContent = "复制", 1200);
+        } catch (_) {
+            const helper = document.createElement("textarea");
+            helper.value = latestCode;
+            helper.style.position = "fixed";
+            helper.style.opacity = "0";
+            document.body.appendChild(helper);
+            helper.select();
+            document.execCommand("copy");
+            helper.remove();
+            copyText.textContent = "已复制";
+            setTimeout(() => copyText.textContent = "复制", 1200);
+        }
+    });
+
+    loadLatest();
+    setInterval(loadLatest, 1000);
+</script>
+</body>
+</html>

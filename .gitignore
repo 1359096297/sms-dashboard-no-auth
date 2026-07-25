@@ -1,0 +1,9 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+
+# 本地设计比对和临时截图
+design-qa*
+implementation-*
